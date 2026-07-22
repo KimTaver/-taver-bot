@@ -204,13 +204,47 @@ client.on("messageCreate", async (message) => {
       embeds: [botEmbed],
     });
 
-  }  // ==========================
-  // !timeout
-  // ==========================
-  if (command === "timeout") {
+  }// ==========================
+// !timeout
+// ==========================
+if (command === "timeout") {
 
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
-      return message.reply("❌ You don't have permission to timeout members.");
+  if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+    return message.reply("❌ You need Moderate Members permission.");
+  }
+
+  const member = message.mentions.members.first();
+
+  if (!member) {
+    return message.reply("❌ Example: `!timeout @user 10m reason`");
+  }
+
+  if (!member.moderatable) {
+    return message.reply("❌ I cannot timeout this user. Check my role position.");
+  }
+
+  const time = args[1];
+
+  if (!time) {
+    return message.reply("❌ Example: `!timeout @user 10m Spamming`");
+  }
+
+  const reason = args.slice(2).join(" ") || "No reason provided";
+
+
+  await member.timeout(convertTime(time), reason);
+
+
+  return message.reply(
+    `⏳ ${member.user.tag} has been timed out for ${time}\nReason: ${reason}`
+  );
+}  // ==========================
+  // !ban
+  // ==========================
+  if (command === "ban") {
+
+    if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers)) {
+      return message.reply("❌ You don't have permission to ban members.");
     }
 
 
@@ -219,32 +253,26 @@ client.on("messageCreate", async (message) => {
 
     if (!member) {
       return message.reply(
-        "❌ Mention someone to timeout.\nExample: `!timeout @user 10m reason`"
+        "❌ Mention someone to ban.\nExample: `!ban @user reason`"
       );
     }
 
 
-    const time = args[0];
-
-
-    if (!time) {
-      return message.reply(
-        "❌ Provide a time.\nExample: `!timeout @user 10m Spamming`"
-      );
+    if (!member.bannable) {
+      return message.reply("❌ I cannot ban this user.");
     }
 
 
-    const reason = args.slice(1).join(" ") || "No reason provided";
+    const reason = args.join(" ") || "No reason provided";
 
 
-    await member.timeout(
-      convertTime(time),
-      reason
-    );
+    await member.ban({
+      reason: reason,
+    });
 
 
     return message.reply(
-      `⏳ **${member.user.tag}** has been timed out for **${time}**.\nReason: ${reason}`
+      `🔨 **${member.user.tag}** has been banned.\n**Reason:** ${reason}`
     );
 
   }
@@ -252,12 +280,12 @@ client.on("messageCreate", async (message) => {
 
 
   // ==========================
-  // !untimeout
+  // !kick
   // ==========================
-  if (command === "untimeout") {
+  if (command === "kick") {
 
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
-      return message.reply("❌ You don't have permission to remove timeouts.");
+    if (!message.member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
+      return message.reply("❌ You don't have permission to kick members.");
     }
 
 
@@ -266,53 +294,28 @@ client.on("messageCreate", async (message) => {
 
     if (!member) {
       return message.reply(
-        "❌ Mention someone.\nExample: `!untimeout @user`"
+        "❌ Mention someone to kick.\nExample: `!kick @user reason`"
       );
     }
 
 
-    await member.timeout(null);
+    if (!member.kickable) {
+      return message.reply("❌ I cannot kick this user.");
+    }
+
+
+    const reason = args.join(" ") || "No reason provided";
+
+
+    await member.kick(reason);
 
 
     return message.reply(
-      `✅ **${member.user.tag}** timeout has been removed.`
+      `👢 **${member.user.tag}** has been kicked.\n**Reason:** ${reason}`
     );
 
   }
 
 });
-
-
-// ==========================
-// Time Converter
-// ==========================
-function convertTime(time) {
-
-  const amount = parseInt(time);
-
-  const unit = time.slice(-1);
-
-
-  if (unit === "s") {
-    return amount * 1000;
-  }
-
-  if (unit === "m") {
-    return amount * 60 * 1000;
-  }
-
-  if (unit === "h") {
-    return amount * 60 * 60 * 1000;
-  }
-
-  if (unit === "d") {
-    return amount * 24 * 60 * 60 * 1000;
-  }
-
-
-  return 10 * 60 * 1000;
-
-}
-
 
 client.login(process.env.DISCORD_TOKEN);
