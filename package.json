@@ -1,12 +1,14 @@
 {
-  "name": "x-taver-bot",
-  "version": "1.0.0",
-  "description": "Discord Moderation Bot",
+  "name": "taver-moderation",
+  "version": "3.0.0",
+  "description": "Professional Discord Moderation Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "discord.js": "^14.21.0"
+    "discord.js": "^14.21.0",
+    "better-sqlite3": "^11.10.0",
+    "dotenv": "^16.4.5"
   }
 }
