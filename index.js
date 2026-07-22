@@ -16,10 +16,7 @@ const client = new Client({
 
 const PREFIX = "!";
 
-client.once("ready", () => {
-  console.log(`✅ ${client.user.tag} is online!`);
-  client.user.setActivity("!help");
-});
+// Embed Creator
 function createEmbed(title, description, color) {
   return new EmbedBuilder()
     .setColor(color)
@@ -27,6 +24,12 @@ function createEmbed(title, description, color) {
     .setDescription(description)
     .setTimestamp();
 }
+
+client.once("ready", () => {
+  console.log(`✅ ${client.user.tag} is online!`);
+  client.user.setActivity("!help");
+});
+
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (!message.guild) return;
@@ -35,20 +38,45 @@ client.on("messageCreate", async (message) => {
   const args = message.content.slice(PREFIX.length).trim().split(/ +/);
   const command = args.shift().toLowerCase();
 
+  // !ping
   if (command === "ping") {
-    return message.reply("🏓 Pong!");
+    return message.reply({
+      embeds: [
+        createEmbed(
+          "🏓 Pong!",
+          `Bot latency: **${client.ws.ping}ms**`,
+          0x57F287
+        ),
+      ],
+    });
   }
 
+  // !help
   if (command === "help") {
-    return message.reply(`
-📖 **Taver Moderation**
+    const helpEmbed = new EmbedBuilder()
+      .setColor(0x5865F2)
+      .setTitle("🛡️ Taver Moderation")
+      .setDescription("Professional Discord Moderation Bot")
+      .addFields(
+        {
+          name: "🏓 General",
+          value:
+            "`!ping` - Check bot latency\n`!help` - Show this help menu",
+        },
+        {
+          name: "🛡️ Moderation (Coming Soon)",
+          value:
+            "`!ban`\n`!kick`\n`!timeout`\n`!untimeout`\n`!warn`\n`!clear`",
+        }
+      )
+      .setThumbnail(client.user.displayAvatarURL())
+      .setFooter({
+        text: `Requested by ${message.author.tag}`,
+        iconURL: message.author.displayAvatarURL(),
+      })
+      .setTimestamp();
 
-**Commands**
-🏓 !ping
-❓ !help
-
-More commands are coming soon...
-    `);
+    return message.reply({ embeds: [helpEmbed] });
   }
 });
 
