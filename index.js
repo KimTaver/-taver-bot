@@ -17,7 +17,6 @@ const client = new Client({
 
 const PREFIX = "!";
 
-// Embed Creator
 function createEmbed(title, description, color) {
   return new EmbedBuilder()
     .setColor(color)
@@ -72,15 +71,11 @@ client.on("messageCreate", async (message) => {
   if (command === "help") {
 
     const helpEmbed = new EmbedBuilder()
-
       .setColor(0x5865F2)
-
       .setTitle("🛡️ Taver Moderation")
-
       .setDescription(
         "Professional Discord Moderation Bot\n\n**Available Commands**"
       )
-
       .addFields(
         {
           name: "📌 General",
@@ -93,16 +88,7 @@ client.on("messageCreate", async (message) => {
             "`!ban`\n`!kick`\n`!timeout`\n`!untimeout`\n`!warn`\n`!clear`",
         }
       )
-
-      .setThumbnail(client.user.displayAvatarURL())
-
-      .setFooter({
-        text: `Requested by ${message.author.tag}`,
-        iconURL: message.author.displayAvatarURL(),
-      })
-
       .setTimestamp();
-
 
     return message.reply({
       embeds: [helpEmbed],
@@ -129,14 +115,9 @@ client.on("messageCreate", async (message) => {
           name: "User ID",
           value: user.id,
           inline: true,
-        },
-        {
-          name: "Account Created",
-          value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`,
         }
       )
       .setTimestamp();
-
 
     return message.reply({
       embeds: [userEmbed],
@@ -152,13 +133,11 @@ client.on("messageCreate", async (message) => {
 
     const user = message.mentions.users.first() || message.author;
 
-
     const avatarEmbed = new EmbedBuilder()
       .setColor(0x5865F2)
       .setTitle(`${user.username}'s Avatar`)
       .setImage(user.displayAvatarURL({ dynamic: true, size: 1024 }))
       .setTimestamp();
-
 
     return message.reply({
       embeds: [avatarEmbed],
@@ -174,7 +153,6 @@ client.on("messageCreate", async (message) => {
 
     const guild = message.guild;
 
-
     const serverEmbed = new EmbedBuilder()
       .setColor(0x57F287)
       .setTitle("🏠 Server Information")
@@ -183,25 +161,13 @@ client.on("messageCreate", async (message) => {
         {
           name: "Server Name",
           value: guild.name,
-          inline: true,
         },
         {
           name: "Members",
           value: `${guild.memberCount}`,
-          inline: true,
-        },
-        {
-          name: "Server ID",
-          value: guild.id,
-          inline: false,
-        },
-        {
-          name: "Created",
-          value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:F>`,
         }
       )
       .setTimestamp();
-
 
     return message.reply({
       embeds: [serverEmbed],
@@ -218,45 +184,33 @@ client.on("messageCreate", async (message) => {
     const botEmbed = new EmbedBuilder()
       .setColor(0x5865F2)
       .setTitle("🤖 Taver Moderation")
-      .setThumbnail(client.user.displayAvatarURL())
       .addFields(
         {
           name: "Bot Name",
           value: client.user.username,
-          inline: true,
-        },
-        {
-          name: "Version",
-          value: "v3.0.0",
-          inline: true,
         },
         {
           name: "Ping",
           value: `${client.ws.ping}ms`,
-          inline: true,
         },
         {
           name: "Library",
           value: "Discord.js v14",
         }
       )
-      .setFooter({
-        text: "Made with ❤️ by Taver",
-      })
       .setTimestamp();
-
 
     return message.reply({
       embeds: [botEmbed],
     });
 
   }  // ==========================
-  // !ban
+  // !timeout
   // ==========================
-  if (command === "ban") {
+  if (command === "timeout") {
 
-    if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers)) {
-      return message.reply("❌ You don't have permission to ban members.");
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+      return message.reply("❌ You don't have permission to timeout members.");
     }
 
 
@@ -265,26 +219,32 @@ client.on("messageCreate", async (message) => {
 
     if (!member) {
       return message.reply(
-        "❌ Mention someone to ban.\nExample: `!ban @user reason`"
+        "❌ Mention someone to timeout.\nExample: `!timeout @user 10m reason`"
       );
     }
 
 
-    if (!member.bannable) {
-      return message.reply("❌ I cannot ban this user.");
+    const time = args[0];
+
+
+    if (!time) {
+      return message.reply(
+        "❌ Provide a time.\nExample: `!timeout @user 10m Spamming`"
+      );
     }
 
 
-    const reason = args.join(" ") || "No reason provided";
+    const reason = args.slice(1).join(" ") || "No reason provided";
 
 
-    await member.ban({
-      reason: reason,
-    });
+    await member.timeout(
+      convertTime(time),
+      reason
+    );
 
 
     return message.reply(
-      `🔨 **${member.user.tag}** has been banned.\n**Reason:** ${reason}`
+      `⏳ **${member.user.tag}** has been timed out for **${time}**.\nReason: ${reason}`
     );
 
   }
@@ -292,12 +252,12 @@ client.on("messageCreate", async (message) => {
 
 
   // ==========================
-  // !kick
+  // !untimeout
   // ==========================
-  if (command === "kick") {
+  if (command === "untimeout") {
 
-    if (!message.member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
-      return message.reply("❌ You don't have permission to kick members.");
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+      return message.reply("❌ You don't have permission to remove timeouts.");
     }
 
 
@@ -306,28 +266,53 @@ client.on("messageCreate", async (message) => {
 
     if (!member) {
       return message.reply(
-        "❌ Mention someone to kick.\nExample: `!kick @user reason`"
+        "❌ Mention someone.\nExample: `!untimeout @user`"
       );
     }
 
 
-    if (!member.kickable) {
-      return message.reply("❌ I cannot kick this user.");
-    }
-
-
-    const reason = args.join(" ") || "No reason provided";
-
-
-    await member.kick(reason);
+    await member.timeout(null);
 
 
     return message.reply(
-      `👢 **${member.user.tag}** has been kicked.\n**Reason:** ${reason}`
+      `✅ **${member.user.tag}** timeout has been removed.`
     );
 
   }
 
 });
+
+
+// ==========================
+// Time Converter
+// ==========================
+function convertTime(time) {
+
+  const amount = parseInt(time);
+
+  const unit = time.slice(-1);
+
+
+  if (unit === "s") {
+    return amount * 1000;
+  }
+
+  if (unit === "m") {
+    return amount * 60 * 1000;
+  }
+
+  if (unit === "h") {
+    return amount * 60 * 60 * 1000;
+  }
+
+  if (unit === "d") {
+    return amount * 24 * 60 * 60 * 1000;
+  }
+
+
+  return 10 * 60 * 1000;
+
+}
+
 
 client.login(process.env.DISCORD_TOKEN);
