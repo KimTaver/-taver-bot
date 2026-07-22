@@ -21,7 +21,7 @@ const commands = [
 client.once(Events.ClientReady, async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
-  const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+  const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
 
   try {
     await rest.put(
@@ -42,4 +42,4 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 
-.setToken(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_TOKEN);
