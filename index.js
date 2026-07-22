@@ -20,7 +20,13 @@ client.once("ready", () => {
   console.log(`✅ ${client.user.tag} is online!`);
   client.user.setActivity("!help");
 });
-
+function createEmbed(title, description, color) {
+  return new EmbedBuilder()
+    .setColor(color)
+    .setTitle(title)
+    .setDescription(description)
+    .setTimestamp();
+}
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (!message.guild) return;
