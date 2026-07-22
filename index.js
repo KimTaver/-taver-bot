@@ -1,391 +1,323 @@
 const {
   Client,
-  Collection,
   GatewayIntentBits,
-  ActivityType,
-  Events,
+  PermissionsBitField,
+  EmbedBuilder,
 } = require("discord.js");
-
-const fs = require("fs");
-const path = require("path");
-require("dotenv").config();
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
-client.commands = new Collection();
+const prefix = "!";
 
-// Load Commands
-const commandFiles = fs
-  .readdirSync(path.join(__dirname, "commands"))
-  .filter(file => file.endsWith(".js"));
-
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.data.name, command);
-}
-
-client.once(Events.ClientReady, () => {
+client.once("ready", () => {
   console.log(`${client.user.tag} is online!`);
-
-  client.user.setActivity("/help | Taver Moderation", {
-    type: ActivityType.Playing,
-  });
 });
 
-client.on(Events.InteractionCreate, async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+  if (!message.guild) return;
+  if (!message.content.startsWith(prefix)) return;
 
-  const command = client.commands.get(interaction.commandName);
+  const args = message.content.slice(prefix.length).trim().split(/ +/);
+  const command = args.shift().toLowerCase();
 
-  if (!command) return;
+  function embed(title, description, color) {
+    return new EmbedBuilder()
+      .setColor(color)
+      .setAuthor({
+        name: "Taver Moderation",
+        iconURL: client.user.displayAvatarURL(),
+      })
+      .setTitle(title)
+      .setDescription(description)
+      .setThumbnail(client.user.displayAvatarURL())
+      .setFooter({
+        text: `Requested by ${message.author.tag}`,
+        iconURL: message.author.displayAvatarURL(),
+      })
+      .setTimestamp();
+  }
 
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
+  // !ping
+  if (command === "ping") {
+    return message.reply({
+      embeds: [
+        embed(
+          "🏓 Pong!",
+          `Latency: **${client.ws.ping}ms**`,
+          0x57F287
+        ),
+      ],
+    });
+  }
 
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({
-        content: "❌ There was an error executing this command.",
-        ephemeral: true,
+  // !help
+  if (command === "help") {
+    return message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x5865F2)
+          .setAuthor({
+            name: "Taver Moderation",
+            iconURL: client.user.displayAvatarURL(),
+          })
+          .setTitle("📖 Commands")
+          .setDescription("Available moderation commands")
+          .addFields(
+            { name: "🏓 !ping", value: "Shows bot latency." },
+            { name: "👤 !userinfo", value: "Shows user information." },
+            { name: "🔨 !ban @user reason", value: "Ban a member." },
+            { name: "👢 !kick @user reason", value: "Kick a member." },
+            {
+              name: "⏳ !timeout @user minutes reason",
+              value: "Timeout a member.",
+            },
+            {
+              name: "🔓 !untimeout @user",
+              value: "Remove timeout.",
+            }
+          )
+          .setFooter({ text: "Taver Moderation" })
+          .setTimestamp(),
+      ],
+    });
+  }
+
+  // !userinfo
+  if (command === "userinfo") {
+    return message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x3498DB)
+          .setTitle("👤 User Information")
+          .setThumbnail(message.author.displayAvatarURL())
+          .addFields(
+            {
+              name: "Username",
+              value: message.author.tag,
+              inline: true,
+            },
+            {
+              name: "ID",
+              value: message.author.id,
+              inline: true,
+            },
+            {
+              name: "Created",
+              value: `<t:${Math.floor(
+                message.author.createdTimestamp / 1000
+              )}:F>`,
+            }
+          )
+          .setTimestamp(),
+      ],
+    });
+  }
+
+  // !ban
+  if (command === "ban") {
+    if (
+      !message.member.permissions.has(
+        PermissionsBitField.Flags.BanMembers
+      )
+    )
+      return message.reply("❌ You don't have permission.");
+
+    const member = message.mentions.members.first();
+    if (!member) return message.reply("Mention a user.");
+
+    if (member.roles.highest.position >= message.member.roles.highest.position)
+      return message.reply(
+        "❌ You can't ban someone with an equal or higher role."
+      );
+
+    const reason = args.slice(1).join(" ") || "No reason provided.";
+
+    try {
+      await member.send(
+        `You have been banned from **${message.guild.name}**.\nReason: ${reason}`
+      );
+    } catch {}
+
+    try {
+      await member.ban({ reason });
+
+      return message.reply({
+        embeds: [
+          embed(
+            "🔨 Member Banned",
+            `${member.user.tag} has been banned.`,
+            0xed4245
+          ).addFields(
+            {
+              name: "Moderator",
+              value: message.author.tag,
+              inline: true,
+            },
+            {
+              name: "Reason",
+              value: reason,
+              inline: true,
+            }
+          ),
+        ],
       });
-    } else {
-      await interaction.reply({
-        content: "❌ There was an error executing this command.",
-        ephemeral: true,
+    } catch {
+      return message.reply("❌ Failed to ban member.");
+    }
+  }  // !kick
+  if (command === "kick") {
+    if (
+      !message.member.permissions.has(
+        PermissionsBitField.Flags.KickMembers
+      )
+    )
+      return message.reply("❌ You don't have permission.");
+
+    const member = message.mentions.members.first();
+    if (!member) return message.reply("Mention a user.");
+
+    if (member.roles.highest.position >= message.member.roles.highest.position)
+      return message.reply(
+        "❌ You can't kick someone with an equal or higher role."
+      );
+
+    const reason = args.slice(1).join(" ") || "No reason provided.";
+
+    try {
+      await member.send(
+        `You have been kicked from **${message.guild.name}**.\nReason: ${reason}`
+      );
+    } catch {}
+
+    try {
+      await member.kick(reason);
+
+      return message.reply({
+        embeds: [
+          embed(
+            "👢 Member Kicked",
+            `${member.user.tag} has been kicked.`,
+            0xFAA61A
+          ).addFields(
+            {
+              name: "Moderator",
+              value: message.author.tag,
+              inline: true,
+            },
+            {
+              name: "Reason",
+              value: reason,
+              inline: true,
+            }
+          ),
+        ],
       });
+    } catch {
+      return message.reply("❌ Failed to kick member.");
     }
   }
-});
-const {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  EmbedBuilder,
-} = require("discord.js");
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("ban")
-    .setDescription("Ban a member")
-    .addUserOption(option =>
-      option
-        .setName("user")
-        .setDescription("User to ban")
-        .setRequired(true)
+  // !timeout
+  if (command === "timeout") {
+    if (
+      !message.member.permissions.has(
+        PermissionsBitField.Flags.ModerateMembers
+      )
     )
-    .addStringOption(option =>
-      option
-        .setName("reason")
-        .setDescription("Reason for the ban")
-        .setRequired(false)
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+      return message.reply("❌ You don't have permission.");
 
-  async execute(interaction) {
-    const user = interaction.options.getUser("user");
-    const reason =
-      interaction.options.getString("reason") || "No reason provided.";
+    const member = message.mentions.members.first();
+    if (!member) return message.reply("Mention a user.");
 
-    const member = await interaction.guild.members
-      .fetch(user.id)
-      .catch(() => null);
+    if (member.roles.highest.position >= message.member.roles.highest.position)
+      return message.reply(
+        "❌ You can't timeout someone with an equal or higher role."
+      );
 
-    if (!member) {
-      return interaction.reply({
-        content: "❌ User not found.",
-        ephemeral: true,
-      });
-    }
+    const minutes = parseInt(args[1]);
+    if (isNaN(minutes) || minutes <= 0)
+      return message.reply("Please provide a valid number of minutes.");
 
-    if (!member.bannable) {
-      return interaction.reply({
-        content: "❌ I can't ban this user.",
-        ephemeral: true,
-      });
-    }
+    const reason = args.slice(2).join(" ") || "No reason provided.";
 
     try {
-      await user.send(
-        `You have been banned from **${interaction.guild.name}**.\nReason: ${reason}`
+      await member.send(
+        `You have been timed out in **${message.guild.name}** for **${minutes}** minute(s).\nReason: ${reason}`
       );
     } catch {}
 
-    await member.ban({ reason });
-
-    const embed = new EmbedBuilder()
-      .setColor(0xed4245)
-      .setTitle("🔨 Member Banned")
-      .setThumbnail(user.displayAvatarURL())
-      .addFields(
-        {
-          name: "User",
-          value: `${user.tag}`,
-          inline: true,
-        },
-        {
-          name: "Moderator",
-          value: `${interaction.user.tag}`,
-          inline: true,
-        },
-        {
-          name: "Reason",
-          value: reason,
-        }
-      )
-      .setTimestamp();
-
-    await interaction.reply({ embeds: [embed] });
-  },
-};const {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  EmbedBuilder,
-} = require("discord.js");
-
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("kick")
-    .setDescription("Kick a member")
-    .addUserOption(option =>
-      option
-        .setName("user")
-        .setDescription("User to kick")
-        .setRequired(true)
-    )
-    .addStringOption(option =>
-      option
-        .setName("reason")
-        .setDescription("Reason for the kick")
-        .setRequired(false)
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
-
-  async execute(interaction) {
-    const user = interaction.options.getUser("user");
-    const reason =
-      interaction.options.getString("reason") || "No reason provided.";
-
-    const member = await interaction.guild.members
-      .fetch(user.id)
-      .catch(() => null);
-
-    if (!member) {
-      return interaction.reply({
-        content: "❌ User not found.",
-        ephemeral: true,
-      });
-    }
-
-    if (!member.kickable) {
-      return interaction.reply({
-        content: "❌ I can't kick this user.",
-        ephemeral: true,
-      });
-    }
-
     try {
-      await user.send(
-        `You have been kicked from **${interaction.guild.name}**.\nReason: ${reason}`
-      );
-    } catch {}
+      await member.timeout(minutes * 60 * 1000, reason);
 
-    await member.kick(reason);
+      return message.reply({
+        embeds: [
+          embed(
+            "⏳ Member Timed Out",
+            `${member.user.tag} has been timed out.`,
+            0xFEE75C
+          ).addFields(
+            {
+              name: "Duration",
+              value: `${minutes} minute(s)`,
+              inline: true,
+            },
+            {
+              name: "Moderator",
+              value: message.author.tag,
+              inline: true,
+            },
+            {
+              name: "Reason",
+              value: reason,
+              inline: false,
+            }
+          ),
+        ],
+      });
+    } catch {
+      return message.reply("❌ Failed to timeout member.");
+    }
+  }
 
-    const embed = new EmbedBuilder()
-      .setColor(0xFAA61A)
-      .setTitle("👢 Member Kicked")
-      .setThumbnail(user.displayAvatarURL())
-      .addFields(
-        {
-          name: "User",
-          value: user.tag,
-          inline: true,
-        },
-        {
-          name: "Moderator",
-          value: interaction.user.tag,
-          inline: true,
-        },
-        {
-          name: "Reason",
-          value: reason,
-        }
+  // !untimeout
+  if (command === "untimeout") {
+    if (
+      !message.member.permissions.has(
+        PermissionsBitField.Flags.ModerateMembers
       )
-      .setTimestamp();
-
-    await interaction.reply({
-      embeds: [embed],
-    });
-  },
-};const {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  EmbedBuilder,
-} = require("discord.js");
-
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("timeout")
-    .setDescription("Timeout a member")
-    .addUserOption(option =>
-      option
-        .setName("user")
-        .setDescription("User to timeout")
-        .setRequired(true)
     )
-    .addIntegerOption(option =>
-      option
-        .setName("minutes")
-        .setDescription("Duration in minutes")
-        .setRequired(true)
-        .setMinValue(1)
-        .setMaxValue(40320) // 28 days
-    )
-    .addStringOption(option =>
-      option
-        .setName("reason")
-        .setDescription("Reason for the timeout")
-        .setRequired(false)
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
+      return message.reply("❌ You don't have permission.");
 
-  async execute(interaction) {
-    const user = interaction.options.getUser("user");
-    const minutes = interaction.options.getInteger("minutes");
-    const reason =
-      interaction.options.getString("reason") || "No reason provided.";
-
-    const member = await interaction.guild.members
-      .fetch(user.id)
-      .catch(() => null);
-
-    if (!member) {
-      return interaction.reply({
-        content: "❌ User not found.",
-        ephemeral: true,
-      });
-    }
-
-    if (!member.moderatable) {
-      return interaction.reply({
-        content: "❌ I can't timeout this user.",
-        ephemeral: true,
-      });
-    }
-
-    try {
-      await user.send(
-        `You have been timed out in **${interaction.guild.name}** for **${minutes} minute(s)**.\nReason: ${reason}`
-      );
-    } catch {}
-
-    await member.timeout(minutes * 60 * 1000, reason);
-
-    const embed = new EmbedBuilder()
-      .setColor(0xFEE75C)
-      .setTitle("⏳ Member Timed Out")
-      .setThumbnail(user.displayAvatarURL())
-      .addFields(
-        {
-          name: "User",
-          value: user.tag,
-          inline: true,
-        },
-        {
-          name: "Duration",
-          value: `${minutes} minute(s)`,
-          inline: true,
-        },
-        {
-          name: "Moderator",
-          value: interaction.user.tag,
-          inline: true,
-        },
-        {
-          name: "Reason",
-          value: reason,
-        }
-      )
-      .setTimestamp();
-
-    await interaction.reply({
-      embeds: [embed],
-    });
-  },
-};const {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  EmbedBuilder,
-} = require("discord.js");
-
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("untimeout")
-    .setDescription("Remove a member's timeout")
-    .addUserOption(option =>
-      option
-        .setName("user")
-        .setDescription("User to remove timeout from")
-        .setRequired(true)
-    )
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
-
-  async execute(interaction) {
-    const user = interaction.options.getUser("user");
-
-    const member = await interaction.guild.members
-      .fetch(user.id)
-      .catch(() => null);
-
-    if (!member) {
-      return interaction.reply({
-        content: "❌ User not found.",
-        ephemeral: true,
-      });
-    }
-
-    if (!member.moderatable) {
-      return interaction.reply({
-        content: "❌ I can't remove this user's timeout.",
-        ephemeral: true,
-      });
-    }
+    const member = message.mentions.members.first();
+    if (!member) return message.reply("Mention a user.");
 
     try {
       await member.timeout(null);
 
-      const embed = new EmbedBuilder()
-        .setColor(0x57F287)
-        .setTitle("✅ Timeout Removed")
-        .setThumbnail(user.displayAvatarURL())
-        .addFields(
-          {
-            name: "User",
-            value: user.tag,
-            inline: true,
-          },
-          {
+      return message.reply({
+        embeds: [
+          embed(
+            "✅ Timeout Removed",
+            `${member.user.tag}'s timeout has been removed.`,
+            0x57F287
+          ).addFields({
             name: "Moderator",
-            value: interaction.user.tag,
+            value: message.author.tag,
             inline: true,
-          }
-        )
-        .setTimestamp();
-
-      await interaction.reply({
-        embeds: [embed],
+          }),
+        ],
       });
-    } catch (err) {
-      console.error(err);
-
-      await interaction.reply({
-        content: "❌ Failed to remove the timeout.",
-        ephemeral: true,
-      });
+    } catch {
+      return message.reply("❌ Failed to remove timeout.");
     }
-  },
-};
+  }
+});
 
 client.login(process.env.DISCORD_TOKEN);
