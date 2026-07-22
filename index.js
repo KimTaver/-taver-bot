@@ -4,7 +4,7 @@ const {
   Events,
   REST,
   Routes,
-  SlashCommandBuilder
+  SlashCommandBuilder,
 } = require("discord.js");
 
 const client = new Client({
@@ -14,9 +14,16 @@ const client = new Client({
 const commands = [
   new SlashCommandBuilder()
     .setName("ping")
-    .setDescription("Replies with Pong!")
-    .toJSON(),
-];
+    .setDescription("Replies with Pong!"),
+
+  new SlashCommandBuilder()
+    .setName("help")
+    .setDescription("Shows all bot commands."),
+
+  new SlashCommandBuilder()
+    .setName("userinfo")
+    .setDescription("Shows information about a user."),
+].map(command => command.toJSON());
 
 client.once(Events.ClientReady, async () => {
   console.log(`Logged in as ${client.user.tag}`);
@@ -28,7 +35,7 @@ client.once(Events.ClientReady, async () => {
       Routes.applicationCommands(client.user.id),
       { body: commands }
     );
-    console.log("Slash commands registered.");
+    console.log("Slash commands registered!");
   } catch (error) {
     console.error(error);
   }
@@ -37,8 +44,28 @@ client.once(Events.ClientReady, async () => {
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  if (interaction.commandName === "ping") {
-    await interaction.reply("🏓 Pong!");
+  switch (interaction.commandName) {
+    case "ping":
+      await interaction.reply("🏓 Pong!");
+      break;
+
+    case "help":
+      await interaction.reply(`
+**📜 Available Commands**
+🏓 /ping - Check if the bot is online.
+❓ /help - Show all commands.
+👤 /userinfo - Show your user information.
+`);
+      break;
+
+    case "userinfo":
+      await interaction.reply(`
+**👤 User Information**
+Username: ${interaction.user.username}
+ID: ${interaction.user.id}
+Created: <t:${Math.floor(interaction.user.createdTimestamp / 1000)}:F>
+`);
+      break;
   }
 });
 
