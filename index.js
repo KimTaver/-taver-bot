@@ -48,22 +48,7 @@ client.on("messageCreate", async (message) => {
           0x57F287
         ),
       ],
-    });
-  }
-
-  // !help
-  if (command === "help") {
-    const helpEmbed = new EmbedBuilder()
-      .setColor(0x5865F2)
-      .setTitle("🛡️ Taver Moderation")
-      .setDescription("Professional Discord Moderation Bot")
-      .addFields(
-        {
-          name: "🏓 General",
-          value:
-            "`!ping` - Check bot latency\n`!help` - Show this help menu",
-        },
-          // !userinfo
+     // !userinfo
   if (command === "userinfo") {
     const user = message.mentions.users.first() || message.author;
 
@@ -134,7 +119,22 @@ client.on("messageCreate", async (message) => {
       .setTimestamp();
 
     return message.reply({ embeds: [botEmbed] });
-  }{
+  } });
+  }
+
+  // !help
+  if (command === "help") {
+    const helpEmbed = new EmbedBuilder()
+      .setColor(0x5865F2)
+      .setTitle("🛡️ Taver Moderation")
+      .setDescription("Professional Discord Moderation Bot")
+      .addFields(
+        {
+          name: "🏓 General",
+          value:
+            "`!ping` - Check bot latency\n`!help` - Show this help menu",
+        },
+        {
           name: "🛡️ Moderation (Coming Soon)",
           value:
             "`!ban`\n`!kick`\n`!timeout`\n`!untimeout`\n`!warn`\n`!clear`",
