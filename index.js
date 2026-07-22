@@ -2,6 +2,7 @@ const {
   Client,
   GatewayIntentBits,
   EmbedBuilder,
+  PermissionsBitField,
 } = require("discord.js");
 
 require("dotenv").config();
@@ -31,18 +32,27 @@ client.once("ready", () => {
   client.user.setActivity("!help");
 });
 
+
 client.on("messageCreate", async (message) => {
+
   if (message.author.bot) return;
   if (!message.guild) return;
   if (!message.content.startsWith(PREFIX)) return;
 
-  const args = message.content.slice(PREFIX.length).trim().split(/ +/);
+
+  const args = message.content
+    .slice(PREFIX.length)
+    .trim()
+    .split(/ +/);
+
   const command = args.shift().toLowerCase();
+
 
   // ==========================
   // !ping
   // ==========================
   if (command === "ping") {
+
     return message.reply({
       embeds: [
         createEmbed(
@@ -52,7 +62,9 @@ client.on("messageCreate", async (message) => {
         ),
       ],
     });
+
   }
+
 
   // ==========================
   // !help
@@ -91,9 +103,11 @@ client.on("messageCreate", async (message) => {
 
       .setTimestamp();
 
+
     return message.reply({
       embeds: [helpEmbed],
     });
+
   }  // ==========================
   // !userinfo
   // ==========================
@@ -123,10 +137,13 @@ client.on("messageCreate", async (message) => {
       )
       .setTimestamp();
 
+
     return message.reply({
       embeds: [userEmbed],
     });
+
   }
+
 
   // ==========================
   // !avatar
@@ -135,16 +152,20 @@ client.on("messageCreate", async (message) => {
 
     const user = message.mentions.users.first() || message.author;
 
+
     const avatarEmbed = new EmbedBuilder()
       .setColor(0x5865F2)
       .setTitle(`${user.username}'s Avatar`)
       .setImage(user.displayAvatarURL({ dynamic: true, size: 1024 }))
       .setTimestamp();
 
+
     return message.reply({
       embeds: [avatarEmbed],
     });
+
   }
+
 
   // ==========================
   // !serverinfo
@@ -152,6 +173,7 @@ client.on("messageCreate", async (message) => {
   if (command === "serverinfo") {
 
     const guild = message.guild;
+
 
     const serverEmbed = new EmbedBuilder()
       .setColor(0x57F287)
@@ -180,10 +202,13 @@ client.on("messageCreate", async (message) => {
       )
       .setTimestamp();
 
+
     return message.reply({
       embeds: [serverEmbed],
     });
+
   }
+
 
   // ==========================
   // !botinfo
@@ -220,9 +245,87 @@ client.on("messageCreate", async (message) => {
       })
       .setTimestamp();
 
+
     return message.reply({
       embeds: [botEmbed],
     });
+
+  }  // ==========================
+  // !ban
+  // ==========================
+  if (command === "ban") {
+
+    if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers)) {
+      return message.reply("❌ You don't have permission to ban members.");
+    }
+
+
+    const member = message.mentions.members.first();
+
+
+    if (!member) {
+      return message.reply(
+        "❌ Mention someone to ban.\nExample: `!ban @user reason`"
+      );
+    }
+
+
+    if (!member.bannable) {
+      return message.reply("❌ I cannot ban this user.");
+    }
+
+
+    const reason = args.join(" ") || "No reason provided";
+
+
+    await member.ban({
+      reason: reason,
+    });
+
+
+    return message.reply(
+      `🔨 **${member.user.tag}** has been banned.\n**Reason:** ${reason}`
+    );
+
+  }
+
+
+
+  // ==========================
+  // !kick
+  // ==========================
+  if (command === "kick") {
+
+    if (!message.member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
+      return message.reply("❌ You don't have permission to kick members.");
+    }
+
+
+    const member = message.mentions.members.first();
+
+
+    if (!member) {
+      return message.reply(
+        "❌ Mention someone to kick.\nExample: `!kick @user reason`"
+      );
+    }
+
+
+    if (!member.kickable) {
+      return message.reply("❌ I cannot kick this user.");
+    }
+
+
+    const reason = args.join(" ") || "No reason provided";
+
+
+    await member.kick(reason);
+
+
+    return message.reply(
+      `👢 **${member.user.tag}** has been kicked.\n**Reason:** ${reason}`
+    );
+
   }
 
 });
