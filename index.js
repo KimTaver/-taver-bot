@@ -1,175 +1,321 @@
 const {
   Client,
   GatewayIntentBits,
-  Events,
-  REST,
-  Routes,
-  SlashCommandBuilder,
-  PermissionFlagsBits,
+  PermissionsBitField,
+  EmbedBuilder,
 } = require("discord.js");
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
 });
 
-const commands = [
-  new SlashCommandBuilder()
-    .setName("ping")
-    .setDescription("Replies with Pong!"),
+const prefix = "!";
 
-  new SlashCommandBuilder()
-    .setName("help")
-    .setDescription("Shows all bot commands."),
+client.once("ready", () => {
+  console.log(`${client.user.tag} is online!`);
+});
 
-  new SlashCommandBuilder()
-    .setName("userinfo")
-    .setDescription("Shows information about a user."),
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+  if (!message.guild) return;
+  if (!message.content.startsWith(prefix)) return;
 
-  new SlashCommandBuilder()
-    .setName("ban")
-    .setDescription("Ban a member.")
-    .addUserOption(option =>
-      option.setName("user").setDescription("User to ban").setRequired(true))
-    .addStringOption(option =>
-      option.setName("reason").setDescription("Reason"))
-    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+  const args = message.content.slice(prefix.length).trim().split(/ +/);
+  const command = args.shift().toLowerCase();
 
-  new SlashCommandBuilder()
-    .setName("kick")
-    .setDescription("Kick a member.")
-    .addUserOption(option =>
-      option.setName("user").setDescription("User to kick").setRequired(true))
-    .addStringOption(option =>
-      option.setName("reason").setDescription("Reason"))
-    .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
-
-  new SlashCommandBuilder()
-    .setName("timeout")
-    .setDescription("Timeout a member.")
-    .addUserOption(option =>
-      option.setName("user").setDescription("User to timeout").setRequired(true))
-    .addIntegerOption(option =>
-      option.setName("minutes").setDescription("Minutes").setRequired(true))
-    .addStringOption(option =>
-      option.setName("reason").setDescription("Reason"))
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
-
-  new SlashCommandBuilder()
-    .setName("untimeout")
-    .setDescription("Remove a member's timeout.")
-    .addUserOption(option =>
-      option.setName("user").setDescription("User").setRequired(true))
-    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
-].map(command => command.toJSON());
-
-client.once(Events.ClientReady, async () => {
-  console.log(`Logged in as ${client.user.tag}`);
-
-  const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
-
-  try {
-    await rest.put(
-      Routes.applicationCommands(client.user.id),
-      { body: commands }
-    );
-    console.log("Slash commands registered!");
-  } catch (error) {
-    console.error(error);
+  function embed(title, description, color) {
+    return new EmbedBuilder()
+      .setColor(color)
+      .setAuthor({
+        name: "Taver Moderation",
+        iconURL: client.user.displayAvatarURL(),
+      })
+      .setTitle(title)
+      .setDescription(description)
+      .setThumbnail(client.user.displayAvatarURL())
+      .setFooter({
+        text: `Requested by ${message.author.tag}`,
+        iconURL: message.author.displayAvatarURL(),
+      })
+      .setTimestamp();
   }
-});
 
-client.on(Events.InteractionCreate, async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+  // !ping
+  if (command === "ping") {
+    return message.reply({
+      embeds: [
+        embed(
+          "🏓 Pong!",
+          `Latency: **${client.ws.ping}ms**`,
+          0x57F287
+        ),
+      ],
+    });
+  }
 
-  switch (interaction.commandName) {
-    case "ping":
-      await interaction.reply("🏓 Pong!");
-      break;
+  // !help
+  if (command === "help") {
+    return message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x5865F2)
+          .setAuthor({
+            name: "Taver Moderation",
+            iconURL: client.user.displayAvatarURL(),
+          })
+          .setTitle("📖 Commands")
+          .setDescription("Available moderation commands")
+          .addFields(
+            { name: "🏓 !ping", value: "Shows bot latency." },
+            { name: "👤 !userinfo", value: "Shows user information." },
+            { name: "🔨 !ban @user reason", value: "Ban a member." },
+            { name: "👢 !kick @user reason", value: "Kick a member." },
+            {
+              name: "⏳ !timeout @user minutes reason",
+              value: "Timeout a member.",
+            },
+            {
+              name: "🔓 !untimeout @user",
+              value: "Remove timeout.",
+            }
+          )
+          .setFooter({ text: "Taver Moderation" })
+          .setTimestamp(),
+      ],
+    });
+  }
 
-    case "help":
-      await interaction.reply(`
-**📜 Available Commands**
-🏓 /ping - Check if the bot is online.
-❓ /help - Show all commands.
-👤 /userinfo - Show your information.
-🔨 /ban - Ban a member.
-👢 /kick - Kick a member.
-⏳ /timeout - Timeout a member.
-🔓 /untimeout - Remove a timeout.
-`);
-      break;
+  // !userinfo
+  if (command === "userinfo") {
+    return message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(0x3498DB)
+          .setTitle("👤 User Information")
+          .setThumbnail(message.author.displayAvatarURL())
+          .addFields(
+            {
+              name: "Username",
+              value: message.author.tag,
+              inline: true,
+            },
+            {
+              name: "ID",
+              value: message.author.id,
+              inline: true,
+            },
+            {
+              name: "Created",
+              value: `<t:${Math.floor(
+                message.author.createdTimestamp / 1000
+              )}:F>`,
+            }
+          )
+          .setTimestamp(),
+      ],
+    });
+  }
 
-    case "userinfo":
-      await interaction.reply(`
-**👤 User Information**
-Username: ${interaction.user.username}
-ID: ${interaction.user.id}
-Created: <t:${Math.floor(interaction.user.createdTimestamp / 1000)}:F>
-`);
-      break;
+  // !ban
+  if (command === "ban") {
+    if (
+      !message.member.permissions.has(
+        PermissionsBitField.Flags.BanMembers
+      )
+    )
+      return message.reply("❌ You don't have permission.");
 
-    case "ban": {
-      const member = interaction.options.getMember("user");
-      const reason = interaction.options.getString("reason") || "No reason provided";
+    const member = message.mentions.members.first();
+    if (!member) return message.reply("Mention a user.");
 
-      if (!member)
-        return interaction.reply({ content: "❌ User not found.", ephemeral: true });
+    if (member.roles.highest.position >= message.member.roles.highest.position)
+      return message.reply(
+        "❌ You can't ban someone with an equal or higher role."
+      );
 
-      try {
-        await member.ban({ reason });
-        await interaction.reply(`🔨 **${member.user.tag}** has been banned.\nReason: ${reason}`);
-      } catch {
-        await interaction.reply({ content: "❌ I couldn't ban that member.", ephemeral: true });
-      }
-      break;
+    const reason = args.slice(1).join(" ") || "No reason provided.";
+
+    try {
+      await member.send(
+        `You have been banned from **${message.guild.name}**.\nReason: ${reason}`
+      );
+    } catch {}
+
+    try {
+      await member.ban({ reason });
+
+      return message.reply({
+        embeds: [
+          embed(
+            "🔨 Member Banned",
+            `${member.user.tag} has been banned.`,
+            0xed4245
+          ).addFields(
+            {
+              name: "Moderator",
+              value: message.author.tag,
+              inline: true,
+            },
+            {
+              name: "Reason",
+              value: reason,
+              inline: true,
+            }
+          ),
+        ],
+      });
+    } catch {
+      return message.reply("❌ Failed to ban member.");
     }
+  }  // !kick
+  if (command === "kick") {
+    if (
+      !message.member.permissions.has(
+        PermissionsBitField.Flags.KickMembers
+      )
+    )
+      return message.reply("❌ You don't have permission.");
 
-    case "kick": {
-      const member = interaction.options.getMember("user");
-      const reason = interaction.options.getString("reason") || "No reason provided";
+    const member = message.mentions.members.first();
+    if (!member) return message.reply("Mention a user.");
 
-      if (!member)
-        return interaction.reply({ content: "❌ User not found.", ephemeral: true });
+    if (member.roles.highest.position >= message.member.roles.highest.position)
+      return message.reply(
+        "❌ You can't kick someone with an equal or higher role."
+      );
 
-      try {
-        await member.kick(reason);
-        await interaction.reply(`👢 **${member.user.tag}** has been kicked.\nReason: ${reason}`);
-      } catch {
-        await interaction.reply({ content: "❌ I couldn't kick that member.", ephemeral: true });
-      }
-      break;
+    const reason = args.slice(1).join(" ") || "No reason provided.";
+
+    try {
+      await member.send(
+        `You have been kicked from **${message.guild.name}**.\nReason: ${reason}`
+      );
+    } catch {}
+
+    try {
+      await member.kick(reason);
+
+      return message.reply({
+        embeds: [
+          embed(
+            "👢 Member Kicked",
+            `${member.user.tag} has been kicked.`,
+            0xFAA61A
+          ).addFields(
+            {
+              name: "Moderator",
+              value: message.author.tag,
+              inline: true,
+            },
+            {
+              name: "Reason",
+              value: reason,
+              inline: true,
+            }
+          ),
+        ],
+      });
+    } catch {
+      return message.reply("❌ Failed to kick member.");
     }
+  }
 
-    case "timeout": {
-      const member = interaction.options.getMember("user");
-      const minutes = interaction.options.getInteger("minutes");
-      const reason = interaction.options.getString("reason") || "No reason provided";
+  // !timeout
+  if (command === "timeout") {
+    if (
+      !message.member.permissions.has(
+        PermissionsBitField.Flags.ModerateMembers
+      )
+    )
+      return message.reply("❌ You don't have permission.");
 
-      if (!member)
-        return interaction.reply({ content: "❌ User not found.", ephemeral: true });
+    const member = message.mentions.members.first();
+    if (!member) return message.reply("Mention a user.");
 
-      try {
-        await member.timeout(minutes * 60 * 1000, reason);
-        await interaction.reply(`⏳ **${member.user.tag}** has been timed out for **${minutes}** minute(s).\nReason: ${reason}`);
-      } catch {
-        await interaction.reply({ content: "❌ I couldn't timeout that member.", ephemeral: true });
-      }
-      break;
+    if (member.roles.highest.position >= message.member.roles.highest.position)
+      return message.reply(
+        "❌ You can't timeout someone with an equal or higher role."
+      );
+
+    const minutes = parseInt(args[1]);
+    if (isNaN(minutes) || minutes <= 0)
+      return message.reply("Please provide a valid number of minutes.");
+
+    const reason = args.slice(2).join(" ") || "No reason provided.";
+
+    try {
+      await member.send(
+        `You have been timed out in **${message.guild.name}** for **${minutes}** minute(s).\nReason: ${reason}`
+      );
+    } catch {}
+
+    try {
+      await member.timeout(minutes * 60 * 1000, reason);
+
+      return message.reply({
+        embeds: [
+          embed(
+            "⏳ Member Timed Out",
+            `${member.user.tag} has been timed out.`,
+            0xFEE75C
+          ).addFields(
+            {
+              name: "Duration",
+              value: `${minutes} minute(s)`,
+              inline: true,
+            },
+            {
+              name: "Moderator",
+              value: message.author.tag,
+              inline: true,
+            },
+            {
+              name: "Reason",
+              value: reason,
+              inline: false,
+            }
+          ),
+        ],
+      });
+    } catch {
+      return message.reply("❌ Failed to timeout member.");
     }
+  }
 
-    case "untimeout": {
-      const member = interaction.options.getMember("user");
+  // !untimeout
+  if (command === "untimeout") {
+    if (
+      !message.member.permissions.has(
+        PermissionsBitField.Flags.ModerateMembers
+      )
+    )
+      return message.reply("❌ You don't have permission.");
 
-      if (!member)
-        return interaction.reply({ content: "❌ User not found.", ephemeral: true });
+    const member = message.mentions.members.first();
+    if (!member) return message.reply("Mention a user.");
 
-      try {
-        await member.timeout(null);
-        await interaction.reply(`🔓 Timeout removed for **${member.user.tag}**.`);
-      } catch {
-        await interaction.reply({ content: "❌ I couldn't remove the timeout.", ephemeral: true });
-      }
-      break;
+    try {
+      await member.timeout(null);
+
+      return message.reply({
+        embeds: [
+          embed(
+            "✅ Timeout Removed",
+            `${member.user.tag}'s timeout has been removed.`,
+            0x57F287
+          ).addFields({
+            name: "Moderator",
+            value: message.author.tag,
+            inline: true,
+          }),
+        ],
+      });
+    } catch {
+      return message.reply("❌ Failed to remove timeout.");
     }
   }
 });
