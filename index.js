@@ -1,6 +1,7 @@
 const {
   Client,
   GatewayIntentBits,
+  EmbedBuilder,
 } = require("discord.js");
 
 require("dotenv").config();
