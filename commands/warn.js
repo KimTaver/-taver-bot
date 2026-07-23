@@ -38,6 +38,36 @@ module.exports = {
       `⚠️ You have been warned in **${message.guild.name}**.\nReason: ${reason}`
     ).catch(() => {});
 
+    // Send log to the log channel
+    if (client.logChannel) {
+      const logChannel = message.guild.channels.cache.get(client.logChannel);
+
+      if (logChannel) {
+        const logEmbed = new EmbedBuilder()
+          .setColor(0xFEE75C)
+          .setTitle("⚠️ Member Warned")
+          .addFields(
+            {
+              name: "Member",
+              value: member.user.tag,
+              inline: true,
+            },
+            {
+              name: "Moderator",
+              value: message.author.tag,
+              inline: true,
+            },
+            {
+              name: "Reason",
+              value: reason,
+            }
+          )
+          .setTimestamp();
+
+        logChannel.send({ embeds: [logEmbed] });
+      }
+    }
+
     const embed = new EmbedBuilder()
       .setColor(0xFEE75C)
       .setTitle("⚠️ Member Warned")
