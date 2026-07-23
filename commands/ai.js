@@ -1,7 +1,7 @@
-const { GoogleGenAI } = require("@google/genai");
+const Groq = require("groq-sdk");
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 module.exports = {
@@ -18,31 +18,25 @@ module.exports = {
     try {
       await message.channel.sendTyping();
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash-lite",
-        contents: prompt,
+      const chat = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "system",
+            content: "You are Taver, a friendly and helpful Discord moderation assistant.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
       });
 
-      return message.reply(response.text);
+      return message.reply(chat.choices[0].message.content);
 
     } catch (err) {
       console.error(err);
-
-      if (err.message.includes("429")) {
-        return message.reply(
-          "⚠️ Taver AI is busy right now because the AI quota has been reached. Please try again later."
-        );
-      }
-
-      if (err.message.includes("404")) {
-        return message.reply(
-          "⚠️ The AI model is unavailable."
-        );
-      }
-
-      return message.reply(
-        "❌ An unexpected error occurred while contacting Taver AI."
-      );
+      return message.reply("❌ Taver AI is currently unavailable.");
     }
   },
 };
