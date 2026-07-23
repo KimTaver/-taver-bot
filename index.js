@@ -74,8 +74,6 @@ client.on("messageCreate", async (message) => {
 
 // Message Delete Logs
 client.on("messageDelete", async (message) => {
-  console.log("A message was deleted!");
-
   if (!message.guild) return;
   if (!client.logChannel) return;
 
@@ -87,18 +85,58 @@ client.on("messageDelete", async (message) => {
     .setTitle("🗑️ Message Deleted")
     .addFields(
       {
-        name: "Channel",
-        value: `${message.channel}`,
-        inline: true,
-      },
-      {
-        name: "Author",
+        name: "👤 Author",
         value: message.author ? message.author.tag : "Unknown",
         inline: true,
       },
       {
-        name: "Content",
+        name: "📍 Channel",
+        value: `${message.channel}`,
+        inline: true,
+      },
+      {
+        name: "📝 Content",
         value: message.content || "*No text content or not cached*",
+      }
+    )
+    .setTimestamp();
+
+  await logChannel.send({ embeds: [embed] }).catch(console.error);
+});
+
+// Message Edit Logs
+client.on("messageUpdate", async (oldMessage, newMessage) => {
+  if (!newMessage.guild) return;
+  if (!client.logChannel) return;
+
+  const logChannel = newMessage.guild.channels.cache.get(client.logChannel);
+  if (!logChannel) return;
+
+  if (newMessage.author?.bot) return;
+
+  if (oldMessage.content === newMessage.content) return;
+
+  const embed = new EmbedBuilder()
+    .setColor(0xFAA61A)
+    .setTitle("✏️ Message Edited")
+    .addFields(
+      {
+        name: "👤 Author",
+        value: newMessage.author ? newMessage.author.tag : "Unknown",
+        inline: true,
+      },
+      {
+        name: "📍 Channel",
+        value: `${newMessage.channel}`,
+        inline: true,
+      },
+      {
+        name: "📝 Before",
+        value: oldMessage.content || "*No content*",
+      },
+      {
+        name: "✏️ After",
+        value: newMessage.content || "*No content*",
       }
     )
     .setTimestamp();
