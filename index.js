@@ -230,7 +230,34 @@ client.on("messageCreate", async (message) => {
       return message.reply("❌ Failed to kick member.");
     }
   }
+// !purge
+if (command === "purge") {
+  if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages))
+    return message.reply("❌ You don't have permission.");
 
+  const amount = parseInt(args[0]);
+
+  if (isNaN(amount) || amount < 1 || amount > 100)
+    return message.reply("❌ Enter a number between 1 and 100.");
+
+  try {
+    await message.channel.bulkDelete(amount, true);
+
+    const msg = await message.channel.send({
+      embeds: [
+        embed(
+          "🧹 Messages Deleted",
+          `Successfully deleted **${amount}** messages.`,
+          0x57F287
+        ),
+      ],
+    });
+
+    setTimeout(() => msg.delete().catch(() => {}), 5000);
+  } catch {
+    message.reply("❌ Failed to delete messages.");
+  }
+}
   // !timeout
   if (command === "timeout") {
     if (
