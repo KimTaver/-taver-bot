@@ -78,7 +78,13 @@ if (!message.guild) {
   try {
     await message.channel.sendTyping();
 
-    const response = await getAIResponse(message.content);
+    console.log("📩 DM received:", message.content);
+
+const response = await getAIResponse(message.content);
+
+console.log("🤖 AI replied:", response);
+
+return message.reply(response);
 
     return message.reply(response);
   } catch (err) {
