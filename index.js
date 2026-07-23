@@ -3,6 +3,7 @@ const {
   GatewayIntentBits,
   PermissionsBitField,
   EmbedBuilder,
+  ActivityType,
 } = require("discord.js");
 
 const client = new Client({
