@@ -22,7 +22,6 @@ client.warnings = new Map();
 
 const prefix = "!";
 
-const prefix = "!";
 
 // Load commands
 const commandFiles = fs
