@@ -51,8 +51,67 @@ client.on("messageCreate", async (message) => {
       .setTimestamp();
   }
 
-  // Commands will go here
+  // !ping
+if (command === "ping") {
+  return message.reply({
+    embeds: [
+      embed(
+        "🏓 Pong!",
+        `Latency: **${client.ws.ping}ms**`,
+        0x57F287
+      ),
+    ],
+  });
+}
 
-});
+// !help
+if (command === "help") {
+  return message.reply({
+    embeds: [
+      new EmbedBuilder()
+        .setColor(0x5865F2)
+        .setTitle("📖 Taver Moderation")
+        .setDescription("Available Commands")
+        .addFields(
+          { name: "🏓 !ping", value: "Shows bot latency.", inline: true },
+          { name: "📖 !help", value: "Shows this menu.", inline: true },
+          { name: "👤 !userinfo", value: "Shows your user information.", inline: true }
+        )
+        .setTimestamp(),
+    ],
+  });
+}
+
+// !userinfo
+if (command === "userinfo") {
+  const user = message.mentions.users.first() || message.author;
+
+  return message.reply({
+    embeds: [
+      new EmbedBuilder()
+        .setColor(0x3498DB)
+        .setTitle("👤 User Information")
+        .setThumbnail(user.displayAvatarURL())
+        .addFields(
+          {
+            name: "Username",
+            value: user.tag,
+            inline: true,
+          },
+          {
+            name: "ID",
+            value: user.id,
+            inline: true,
+          },
+          {
+            name: "Account Created",
+            value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`,
+          }
+        )
+        .setTimestamp(),
+    ],
+  });
+}
+
 
 client.login(process.env.DISCORD_TOKEN);
