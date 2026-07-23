@@ -7,7 +7,7 @@ module.exports = {
   name: "ban",
   description: "Ban a member",
 
-  async execute(message, args) {
+  async execute(message, args, client) {
     if (
       !message.member.permissions.has(
         PermissionsBitField.Flags.BanMembers
@@ -33,6 +33,36 @@ module.exports = {
 
       await member.ban({ reason });
 
+      // Send log to the log channel
+      if (client.logChannel) {
+        const logChannel = message.guild.channels.cache.get(client.logChannel);
+
+        if (logChannel) {
+          const logEmbed = new EmbedBuilder()
+            .setColor(0xED4245)
+            .setTitle("🔨 Member Banned")
+            .addFields(
+              {
+                name: "Member",
+                value: member.user.tag,
+                inline: true,
+              },
+              {
+                name: "Moderator",
+                value: message.author.tag,
+                inline: true,
+              },
+              {
+                name: "Reason",
+                value: reason,
+              }
+            )
+            .setTimestamp();
+
+          await logChannel.send({ embeds: [logEmbed] });
+        }
+      }
+
       const embed = new EmbedBuilder()
         .setColor(0xED4245)
         .setTitle("🔨 Member Banned")
@@ -54,7 +84,4 @@ module.exports = {
       return message.reply({ embeds: [embed] });
     } catch (err) {
       console.error(err);
-      return message.reply("❌ Failed to ban member.");
-    }
-  },
-};
+     
