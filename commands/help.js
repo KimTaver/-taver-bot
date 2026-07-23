@@ -4,33 +4,21 @@ module.exports = {
   name: "help",
   description: "Shows all commands",
 
-  execute(message) {
+  execute(message, args, client) {
+    const commands = [...client.commands.values()]
+      .map(cmd => `\`${cmd.name}\``)
+      .sort()
+      .join("\n");
+
     const embed = new EmbedBuilder()
       .setColor(0x5865F2)
       .setTitle("📖 Taver Moderation")
-      .setDescription("Available Commands")
-      .addFields(
-        {
-          name: "ℹ️ Information",
-          value:
-            "`!help`\n`!ping`\n`!userinfo`\n`!avatar`\n`!serverinfo`\n`!botinfo`",
-        },
-        {
-          name: "🛡️ Moderation",
-          value:
-            "`!ban`\n`!kick`\n`!timeout`\n`!untimeout`\n`!warn`\n`!purge`",
-        },
-        {
-          name: "⚙️ Utility",
-          value:
-            "`!lock`\n`!unlock`\n`!slowmode`\n`!announce`",
-        }
-      )
+      .setDescription("**Available Commands**\n\n" + commands)
       .setFooter({
-        text: "Taver Moderation • Developed by Kim_Taver",
+        text: `Total Commands: ${client.commands.size} • Developed by Kim_Taver`,
       })
       .setTimestamp();
 
-    return message.reply({ embeds: [embed] });
+    message.reply({ embeds: [embed] });
   },
 };
