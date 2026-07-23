@@ -28,7 +28,6 @@ const client = new Client({
 });
 
 
-
 // ==========================
 // Variables
 // ==========================
@@ -40,7 +39,7 @@ const PREFIX = "!";
 const warnings = new Map();
 
 
-// Mod log channel name
+// Mod log channel
 const LOG_CHANNEL = "mod-logs";
 
 
@@ -53,7 +52,6 @@ const badWords = [
 ];
 
 
-
 // ==========================
 // Ready Event
 // ==========================
@@ -64,9 +62,7 @@ client.once("ready", () => {
 
   client.user.setActivity("!help");
 
-});
-
-// ==========================
+});// ==========================
 // Message Create Event
 // ==========================
 
@@ -86,9 +82,11 @@ client.on("messageCreate", async (message) => {
   const content = message.content.toLowerCase();
 
 
+
   const foundBadWord = badWords.some(word =>
     content.includes(word)
   );
+
 
 
   if (foundBadWord) {
@@ -96,19 +94,23 @@ client.on("messageCreate", async (message) => {
 
     try {
 
+
       await message.delete();
 
 
-      const warningMessage = await message.channel.send(
-        `⚠️ ${message.author}, watch your language.`
+
+      const warning = await message.channel.send(
+        `⚠️ ${message.author}, please watch your language.`
       );
+
 
 
       setTimeout(() => {
 
-        warningMessage.delete().catch(() => {});
+        warning.delete().catch(() => {});
 
       }, 5000);
+
 
 
     } catch (error) {
@@ -116,6 +118,7 @@ client.on("messageCreate", async (message) => {
       console.log(error);
 
     }
+
 
 
     return;
@@ -139,31 +142,30 @@ client.on("messageCreate", async (message) => {
 
 
 
-  const command = args.shift().toLowerCase();
-
-// ==========================
+  const command = args.shift().toLowerCase();// ==========================
 // !ping
 // ==========================
 
 if (command === "ping") {
 
+
+  const pingEmbed = new EmbedBuilder()
+
+    .setColor(0x57F287)
+
+    .setTitle("🏓 Pong!")
+
+    .setDescription(
+      `Bot latency: **${client.ws.ping}ms**`
+    )
+
+    .setTimestamp();
+
+
+
   return message.reply({
 
-    embeds: [
-
-      new EmbedBuilder()
-
-        .setColor(0x57F287)
-
-        .setTitle("🏓 Pong!")
-
-        .setDescription(
-          `Bot latency: **${client.ws.ping}ms**`
-        )
-
-        .setTimestamp()
-
-    ],
+    embeds: [pingEmbed],
 
   });
 
@@ -223,7 +225,6 @@ if (command === "help") {
   });
 
 }
-
 // ==========================
 // !userinfo
 // ==========================
@@ -406,7 +407,6 @@ if (command === "botinfo") {
   });
 
 }
-
 // ==========================
 // !ban
 // ==========================
@@ -494,10 +494,13 @@ if (command === "ban") {
   );
 
 
+
   if (logChannel) {
 
     logChannel.send({
+
       embeds: [logEmbed],
+
     });
 
   }
@@ -595,10 +598,13 @@ if (command === "kick") {
   );
 
 
+
   if (logChannel) {
 
     logChannel.send({
+
       embeds: [logEmbed],
+
     });
 
   }
@@ -610,7 +616,6 @@ if (command === "kick") {
   );
 
 }
-
 // ==========================
 // !timeout
 // ==========================
@@ -672,15 +677,21 @@ if (command === "timeout") {
 
     duration = amount * 60 * 1000;
 
-  } else if (unit === "h") {
+  } 
+
+  else if (unit === "h") {
 
     duration = amount * 60 * 60 * 1000;
 
-  } else if (unit === "d") {
+  } 
+
+  else if (unit === "d") {
 
     duration = amount * 24 * 60 * 60 * 1000;
 
-  } else {
+  } 
+
+  else {
 
     return message.reply(
       "❌ Invalid time format."
@@ -746,7 +757,6 @@ if (command === "untimeout") {
   );
 
 }
-
 // ==========================
 // !warn
 // ==========================
@@ -837,6 +847,7 @@ if (command === "warnings") {
 
   const warningList = userWarnings.map((warn, index) => {
 
+
     return (
 
       `**${index + 1}.** ${warn.reason}\n` +
@@ -846,6 +857,7 @@ if (command === "warnings") {
       `Date: ${warn.date}`
 
     );
+
 
   }).join("\n\n");
 
@@ -870,7 +882,6 @@ if (command === "warnings") {
   });
 
 }
-
 // ==========================
 // !clear
 // ==========================
@@ -994,7 +1005,6 @@ if (command === "unlock") {
   );
 
 }
-
 // ==========================
 // !ticket
 // ==========================
@@ -1035,7 +1045,9 @@ if (command === "ticket") {
         id: message.guild.roles.everyone,
 
         deny: [
+
           PermissionsBitField.Flags.ViewChannel,
+
         ],
 
       },
@@ -1083,7 +1095,7 @@ if (command === "ticket") {
     .setTitle("🎫 Ticket Created")
 
     .setDescription(
-      "Please explain your issue.\nA staff member will assist you.\n\nUse `!close` to close this ticket."
+      "Please explain your issue.\nA staff member will assist you soon.\n\nUse `!close` to close this ticket."
     )
 
     .setTimestamp();
@@ -1155,7 +1167,6 @@ if (command === "close") {
 
 
 }
-
 // ==========================
 // !add
 // ==========================
@@ -1279,7 +1290,7 @@ if (command === "remove") {
 
 
 // ==========================
-// End of Message Event
+// End Message Event
 // ==========================
 
 });
