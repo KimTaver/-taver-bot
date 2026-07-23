@@ -18,6 +18,12 @@ const prefix = "!";
 
 client.once("ready", () => {
   console.log(`${client.user.tag} is online!`);
+
+  client.user.setActivity("!help | Taver Moderation", {
+    type: ActivityType.Playing,
+  });
+
+  client.user.setStatus("online");
 });
 
 client.on("messageCreate", async (message) => {
