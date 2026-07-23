@@ -88,7 +88,10 @@ client.on("messageCreate", async (message) => {
             {
               name: "🔓 !untimeout @user",
               value: "Remove timeout.",
-            }
+            {
+ name: "🧹 !purge <1-100>", value: "Delete messages." },
+{ name: "🔒 !lock", value: "Lock the current channel." },
+{ name: "🔓 !unlock", value: "Unlock the current channel." }
           )
           .setFooter({ text: "Taver Moderation" })
           .setTimestamp(),
@@ -257,6 +260,28 @@ if (command === "purge") {
   } catch {
     message.reply("❌ Failed to delete messages.");
   }
+}// !lock
+if (command === "lock") {
+  if (!message.member.permissions.has(PermissionsBitField.Flags.ManageChannels))
+    return message.reply("❌ You don't have permission.");
+
+  try {
+    await message.channel.permissionOverwrites.edit(message.guild.roles.everyone, {
+      SendMessages: false,
+    });
+
+    return message.reply({
+      embeds: [
+        embed(
+          "🔒 Channel Locked",
+          `${message.channel} has been locked.`,
+          0xED4245
+        ),
+      ],
+    });
+  } catch {
+    return message.reply("❌ Failed to lock channel.");
+ 
 }
   // !timeout
   if (command === "timeout") {
