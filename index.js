@@ -22,7 +22,6 @@ client.warnings = new Map();
 
 const prefix = "!";
 
-
 // Load commands
 const commandFiles = fs
   .readdirSync(path.join(__dirname, "commands"))
@@ -65,6 +64,41 @@ client.on("messageCreate", async (message) => {
     console.error(err);
     message.reply("❌ An error occurred while executing that command.");
   }
+});
+
+// Message Delete Logs
+client.on("messageDelete", async (message) => {
+  if (!message.guild) return;
+  if (!client.logChannel) return;
+  if (message.author?.bot) return;
+
+  const logChannel = message.guild.channels.cache.get(client.logChannel);
+  if (!logChannel) return;
+
+  const { EmbedBuilder } = require("discord.js");
+
+  const embed = new EmbedBuilder()
+    .setColor(0xED4245)
+    .setTitle("🗑️ Message Deleted")
+    .addFields(
+      {
+        name: "👤 Author",
+        value: message.author.tag,
+        inline: true,
+      },
+      {
+        name: "📍 Channel",
+        value: `${message.channel}`,
+        inline: true,
+      },
+      {
+        name: "📝 Content",
+        value: message.content || "*No text content*",
+      }
+    )
+    .setTimestamp();
+
+  await logChannel.send({ embeds: [embed] }).catch(() => {});
 });
 
 client.login(process.env.DISCORD_TOKEN);
