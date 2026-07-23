@@ -12,16 +12,19 @@ module.exports = {
       !message.member.permissions.has(
         PermissionsBitField.Flags.BanMembers
       )
-    )
+    ) {
       return message.reply("❌ You don't have permission.");
+    }
 
     const member = message.mentions.members.first();
 
-    if (!member)
+    if (!member) {
       return message.reply("❌ Mention a member.");
+    }
 
-    if (!member.bannable)
+    if (!member.bannable) {
       return message.reply("❌ I can't ban this member.");
+    }
 
     const reason =
       args.slice(1).join(" ") || "No reason provided.";
@@ -84,4 +87,7 @@ module.exports = {
       return message.reply({ embeds: [embed] });
     } catch (err) {
       console.error(err);
-     
+      return message.reply("❌ Failed to ban member.");
+    }
+  },
+};
