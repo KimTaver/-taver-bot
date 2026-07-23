@@ -11,25 +11,33 @@ module.exports = (client) => {
       spamMap.set(userId, {
         count: 1,
         lastMessage: now,
+        warned: false,
       });
       return;
     }
 
     const data = spamMap.get(userId);
 
-    if (now - data.lastMessage < 3000) {
+    if (now - data.lastMessage <= 3000) {
       data.count++;
       data.lastMessage = now;
+
+      if (data.count === 3 && !data.warned) {
+        data.warned = true;
+        return message.reply(
+          "⚠️ Please stop spamming or you'll be timed out."
+        );
+      }
 
       if (data.count >= 5) {
         try {
           await message.member.timeout(
             5 * 60 * 1000,
-            "Spam detected"
+            "Spamming"
           );
 
           await message.channel.send(
-            `⚠️ ${message.author} has been timed out for **5 minutes** due to spam.`
+            `🚫 ${message.author} was timed out for **5 minutes** for spamming.`
           );
         } catch (err) {
           console.error(err);
@@ -41,6 +49,7 @@ module.exports = (client) => {
       spamMap.set(userId, {
         count: 1,
         lastMessage: now,
+        warned: false,
       });
     }
   });
