@@ -6,7 +6,7 @@ module.exports = {
   name: "leaderboard",
   description: "Shows the server leaderboard",
 
-  async execute(message) {
+  async execute(message, args, client) {
     const levelsFile = path.join(__dirname, "../data/levels.json");
 
     if (!fs.existsSync(levelsFile)) {
