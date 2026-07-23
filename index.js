@@ -18,6 +18,9 @@ const client = new Client({
 });
 
 client.commands = new Collection();
+client.warnings = new Map();
+
+const prefix = "!";
 
 const prefix = "!";
 
