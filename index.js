@@ -3,6 +3,8 @@ const {
   GatewayIntentBits,
   Collection,
   ActivityType,
+  Partials,
+  EmbedBuilder,
 } = require("discord.js");
 
 const fs = require("fs");
@@ -14,6 +16,10 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+  ],
+  partials: [
+    Partials.Message,
+    Partials.Channel,
   ],
 });
 
@@ -68,37 +74,36 @@ client.on("messageCreate", async (message) => {
 
 // Message Delete Logs
 client.on("messageDelete", async (message) => {
+  console.log("A message was deleted!");
+
   if (!message.guild) return;
   if (!client.logChannel) return;
-  if (message.author?.bot) return;
 
   const logChannel = message.guild.channels.cache.get(client.logChannel);
   if (!logChannel) return;
-
-  const { EmbedBuilder } = require("discord.js");
 
   const embed = new EmbedBuilder()
     .setColor(0xED4245)
     .setTitle("🗑️ Message Deleted")
     .addFields(
       {
-        name: "👤 Author",
-        value: message.author.tag,
-        inline: true,
-      },
-      {
-        name: "📍 Channel",
+        name: "Channel",
         value: `${message.channel}`,
         inline: true,
       },
       {
-        name: "📝 Content",
-        value: message.content || "*No text content*",
+        name: "Author",
+        value: message.author ? message.author.tag : "Unknown",
+        inline: true,
+      },
+      {
+        name: "Content",
+        value: message.content || "*No text content or not cached*",
       }
     )
     .setTimestamp();
 
-  await logChannel.send({ embeds: [embed] }).catch(() => {});
+  await logChannel.send({ embeds: [embed] }).catch(console.error);
 });
 
 client.login(process.env.DISCORD_TOKEN);
