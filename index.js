@@ -71,7 +71,21 @@ client.once("ready", () => {
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
-  if (!message.guild) return;
+  // Reply to DMs with AI
+if (!message.guild) {
+  if (message.author.bot) return;
+
+  try {
+    await message.channel.sendTyping();
+
+    const response = await getAIResponse(message.content);
+
+    return message.reply(response);
+  } catch (err) {
+    console.error(err);
+    return message.reply("⚠️ Taver AI is having trouble right now.");
+  }
+}
 
 
   // 🤖 Taver AI Mention System
