@@ -21,10 +21,9 @@ module.exports = {
       const chat = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
         messages: [
-          {
-            {
-  role: "system",
-  content: `
+  {
+    role: "system",
+    content: `
 You are Taver AI, the official assistant of the Taver Discord bot.
 
 Personality:
@@ -38,8 +37,13 @@ Personality:
 - Help users with Discord, gaming, coding, moderation, and general questions.
 
 Your name is Taver AI.
-`
-},
+`,
+  },
+  {
+    role: "user",
+    content: prompt,
+  },
+],
           {
             role: "user",
             content: prompt,
