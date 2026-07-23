@@ -81,7 +81,28 @@ client.on("messageDelete", async (message) => {
   if (!logChannel) return;
 
   const embed = new EmbedBuilder()
-    .setColor(0xE
+    .setColor(0xED4245)
+    .setTitle("🗑️ Message Deleted")
+    .addFields(
+      {
+        name: "👤 Author",
+        value: message.author ? message.author.tag : "Unknown",
+        inline: true,
+      },
+      {
+        name: "📍 Channel",
+        value: `${message.channel}`,
+        inline: true,
+      },
+      {
+        name: "📝 Content",
+        value: message.content || "*No content*",
+      }
+    )
+    .setTimestamp();
+
+  await logChannel.send({ embeds: [embed] }).catch(console.error);
+});
 
 // Message Edit Logs
 client.on("messageUpdate", async (oldMessage, newMessage) => {
