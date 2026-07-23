@@ -122,5 +122,52 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
 
   await logChannel.send({ embeds: [embed] }).catch(console.error);
 });
+// Member Join Log
+client.on("guildMemberAdd", async (member) => {
+  if (!client.logChannel) return;
 
+  const logChannel = member.guild.channels.cache.get(client.logChannel);
+  if (!logChannel) return;
+
+  const embed = new EmbedBuilder()
+    .setColor(0x57F287)
+    .setTitle("👋 Member Joined")
+    .setThumbnail(member.user.displayAvatarURL())
+    .addFields(
+      {
+        name: "Member",
+        value: `${member.user.tag}`,
+        inline: true,
+      },
+      {
+        name: "Account Created",
+        value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`,
+        inline: true,
+      }
+    )
+    .setTimestamp();
+
+  await logChannel.send({ embeds: [embed] }).catch(console.error);
+});
+
+// Member Leave Log
+client.on("guildMemberRemove", async (member) => {
+  if (!client.logChannel) return;
+
+  const logChannel = member.guild.channels.cache.get(client.logChannel);
+  if (!logChannel) return;
+
+  const embed = new EmbedBuilder()
+    .setColor(0xED4245)
+    .setTitle("🚪 Member Left")
+    .setThumbnail(member.user.displayAvatarURL())
+    .addFields({
+      name: "Member",
+      value: `${member.user.tag}`,
+      inline: true,
+    })
+    .setTimestamp();
+
+  await logChannel.send({ embeds: [embed] }).catch(console.error);
+});
 client.login(process.env.DISCORD_TOKEN);
