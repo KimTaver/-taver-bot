@@ -1,12 +1,19 @@
 {
   "name": "taver-moderation",
-  "version": "3.0.0",
+  "version": "2.0.0",
+  "description": "Advanced Discord moderation bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
+  "keywords": [
+    "discord",
+    "moderation",
+    "bot"
+  ],
+  "author": "Kim_Taver",
+  "license": "MIT",
   "dependencies": {
-    "discord.js": "^14.21.0",
-    "dotenv": "^16.4.5"
+    "discord.js": "^14.21.0"
   }
 }
