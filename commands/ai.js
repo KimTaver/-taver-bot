@@ -10,7 +10,7 @@ module.exports = {
 
   async execute(message, args) {
     if (!args.length) {
-      return message.reply("❌ Please ask me something.\nExample: `!ai Tell me a joke`");
+      return message.reply("❌ Please ask me something.");
     }
 
     const prompt = args.join(" ");
@@ -25,6 +25,8 @@ module.exports = {
 
       return message.reply(response.text);
     } catch (err) {
-  console.error(err);
-  return message.reply(`❌ ${err.message}`);
-}
+      console.error(err);
+      return message.reply("❌ AI is unavailable right now.");
+    }
+  },
+};
