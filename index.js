@@ -1,4 +1,3 @@
-
 const {
   Client,
   GatewayIntentBits,
@@ -9,6 +8,7 @@ const {
 
 const fs = require("fs");
 const path = require("path");
+const getAIResponse = require("./utils/ai");
 
 const client = new Client({
   intents: [
@@ -30,40 +30,81 @@ client.warnings = new Map();
 const prefix = "!";
 
 // Load Commands
-const commandFiles = fs
-  .readdirSync(path.join(__dirname, "commands"))
-  .filter(file => file.endsWith(".js"));
+const commandPath = path.join(__dirname, "commands");
 
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.name, command);
-  console.log(`✅ Loaded command: ${command.name}`);
+if (fs.existsSync(commandPath)) {
+  const commandFiles = fs
+    .readdirSync(commandPath)
+    .filter(file => file.endsWith(".js"));
+
+  for (const file of commandFiles) {
+    const command = require(`./commands/${file}`);
+    client.commands.set(command.name, command);
+    console.log(`✅ Loaded command: ${command.name}`);
+  }
 }
 
 // Load Events
-const eventFiles = fs
-  .readdirSync(path.join(__dirname, "events"))
-  .filter(file => file.endsWith(".js"));
+const eventPath = path.join(__dirname, "events");
 
-for (const file of eventFiles) {
-  const event = require(`./events/${file}`);
-  event(client);
-  console.log(`✅ Loaded event: ${file}`);
+if (fs.existsSync(eventPath)) {
+  const eventFiles = fs
+    .readdirSync(eventPath)
+    .filter(file => file.endsWith(".js"));
+
+  for (const file of eventFiles) {
+    const event = require(`./events/${file}`);
+    event(client);
+    console.log(`✅ Loaded event: ${file}`);
+  }
 }
 
 client.once("ready", () => {
   console.clear();
   console.log(`✅ Logged in as ${client.user.tag}`);
 
-  client.user.setActivity("!help | Taver Moderation", {
+  client.user.setActivity("!help | Taver AI", {
     type: ActivityType.Playing,
   });
 });
 
-// Prefix Commands
+
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (!message.guild) return;
+
+
+  // 🤖 Taver AI Mention System
+  if (message.mentions.has(client.user)) {
+
+    const prompt = message.content
+      .replace(`<@${client.user.id}>`, "")
+      .trim();
+
+    if (!prompt) {
+      return message.reply(
+        "🤖 I'm Taver AI. Created by Kim_Taver. Ask me about Discord, coding, gaming, moderation, or anything else."
+      );
+    }
+
+    try {
+      await message.channel.sendTyping();
+
+      const response = await getAIResponse(prompt);
+
+      return message.reply(response);
+
+    } catch (error) {
+      console.error("AI Error:", error);
+
+      return message.reply(
+        "⚠️ Taver AI is having trouble connecting right now."
+      );
+    }
+  }
+
+
+  // Prefix Commands
   if (!message.content.startsWith(prefix)) return;
 
   const args = message.content
@@ -78,11 +119,16 @@ client.on("messageCreate", async (message) => {
   if (!command) return;
 
   try {
-    command.execute(message, args, client);
+    await command.execute(message, args, client);
+
   } catch (err) {
     console.error(err);
-    message.reply("❌ An error occurred while executing that command.");
+
+    message.reply(
+      "❌ An error occurred while executing that command."
+    );
   }
 });
+
 
 client.login(process.env.DISCORD_TOKEN);
