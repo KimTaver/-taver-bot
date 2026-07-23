@@ -1,0 +1,11 @@
+{
+  "prefix": "!",
+  "embedColor": "#5865F2",
+  "developer": "Kim_Taver",
+  "botName": "Taver Moderation",
+  "status": "!help | Taver Moderation",
+  "logsChannel": "",
+  "welcomeChannel": "",
+  "goodbyeChannel": "",
+  "autoRole": ""
+}
