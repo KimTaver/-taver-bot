@@ -25,8 +25,6 @@ module.exports = {
 
       return message.reply(response.text);
     } catch (err) {
-      console.error(err);
-      return message.reply("❌ AI is unavailable right now.");
-    }
-  },
-};
+  console.error(err);
+  return message.reply(`❌ ${err.message}`);
+}
