@@ -25,7 +25,24 @@ module.exports = {
 
       return message.reply(response.text);
     } catch (err) {
-      console.error(err);
+  console.error(err);
+
+  if (err.message.includes("429")) {
+    return message.reply(
+      "⚠️ Taver AI is busy right now because the AI quota has been reached. Please try again in a few minutes."
+    );
+  }
+
+  if (err.message.includes("404")) {
+    return message.reply(
+      "⚠️ The AI model is currently unavailable. The bot owner needs to update the AI model."
+    );
+  }
+
+  return message.reply(
+    "❌ An unexpected error occurred while contacting Taver AI."
+  );
+}
       return message.reply(`❌ ${err.message}`);
     }
   },
