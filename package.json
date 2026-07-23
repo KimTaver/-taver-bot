@@ -14,7 +14,7 @@
   "author": "Kim_Taver",
   "license": "MIT",
   "dependencies": {
-    "@google/genai": "^1.14.0",
+    "groq-sdk": "^0.30.0"
     "discord.js": "^14.21.0"
   }
 }
