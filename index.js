@@ -146,35 +146,43 @@ if (message.mentions.has(client.user)) {
 }
 
   // =====================
-  // Prefix Commands
-  // =====================
-  if (!message.content.startsWith(prefix)) return;
+// Prefix Commands
+// =====================
+if (!message.content.startsWith(prefix)) return;
 
-  const args = message.content
-    .slice(prefix.length)
-    .trim()
-    .split(/ +/);
+console.log(`📨 Command received: ${message.content}`);
 
-  const commandName = args.shift().toLowerCase();
+const args = message.content
+  .slice(prefix.length)
+  .trim()
+  .split(/ +/);
 
-  const command = client.commands.get(commandName);
+const commandName = args.shift().toLowerCase();
 
-  if (!command) return;
+console.log(`🔍 Looking for command: ${commandName}`);
+
+const command = client.commands.get(commandName);
+
+if (!command) {
+  console.log(`❌ Command not found: ${commandName}`);
+  return;
+}
+
+console.log(`✅ Executing command: ${command.name}`);
+
+try {
+  await command.execute(message, args, client);
+} catch (err) {
+  console.error(`❌ Error executing ${commandName}:`, err);
 
   try {
-    await command.execute(message, args, client);
-
-  } catch (err) {
-    console.error(err);
-
-    try {
-      await message.reply(
-        "❌ An error occurred while executing that command."
-      );
-    } catch (e) {
-      console.error("Couldn't send error message:", e);
-    }
+    await message.reply(
+      "❌ An error occurred while executing that command."
+    );
+  } catch (e) {
+    console.error("Couldn't send error message:", e);
   }
+}
 });
 
 // Prevent bot from crashing
