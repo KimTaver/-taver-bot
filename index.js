@@ -34,7 +34,9 @@ const prefix = "!";
 const commandPath = path.join(__dirname, "commands");
 
 if (fs.existsSync(commandPath)) {
-  const commandFiles = fs.readdirSync(commandPath).filter(f => f.endsWith(".js"));
+  const commandFiles = fs
+    .readdirSync(commandPath)
+    .filter(f => f.endsWith(".js"));
 
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -47,7 +49,9 @@ if (fs.existsSync(commandPath)) {
 const eventPath = path.join(__dirname, "events");
 
 if (fs.existsSync(eventPath)) {
-  const eventFiles = fs.readdirSync(eventPath).filter(f => f.endsWith(".js"));
+  const eventFiles = fs
+    .readdirSync(eventPath)
+    .filter(f => f.endsWith(".js"));
 
   for (const file of eventFiles) {
     require(`./events/${file}`)(client);
@@ -80,9 +84,13 @@ client.on("messageCreate", async (message) => {
     } catch (err) {
       console.error("DM Error:", err);
 
-      return message.channel.send(
-        "⚠️ Taver AI is having trouble right now."
-      );
+      try {
+        await message.channel.send(
+          "⚠️ Taver AI is having trouble right now."
+        );
+      } catch {}
+
+      return;
     }
   }
 
@@ -111,9 +119,13 @@ client.on("messageCreate", async (message) => {
     } catch (err) {
       console.error("AI Error:", err);
 
-      return message.reply(
-        "⚠️ Taver AI is having trouble right now."
-      );
+      try {
+        await message.reply(
+          "⚠️ Taver AI is having trouble right now."
+        );
+      } catch {}
+
+      return;
     }
   }
 
@@ -135,14 +147,23 @@ client.on("messageCreate", async (message) => {
 
   try {
     await command.execute(message, args, client);
+
   } catch (err) {
     console.error(err);
 
-    message.reply(
-      "❌ An error occurred while executing that command."
-    );
+    try {
+      await message.reply(
+        "❌ An error occurred while executing that command."
+      );
+    } catch (e) {
+      console.error("Couldn't send error message:", e);
+    }
   }
 });
+
+// Prevent bot from crashing
+process.on("unhandledRejection", console.error);
+process.on("uncaughtException", console.error);
 
 client.login(process.env.DISCORD_TOKEN)
   .then(() => console.log("✅ Discord login successful"))
