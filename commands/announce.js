@@ -8,6 +8,9 @@ module.exports = {
   description: "Send a server announcement",
 
   async execute(message, args) {
+
+    console.log("📢 Announce command started.");
+
     if (
       !message.member.permissions.has(
         PermissionsBitField.Flags.ManageGuild
@@ -43,7 +46,9 @@ module.exports = {
       })
       .setTimestamp();
 
-    await channel.send({ embeds: [embed] });
+    await channel.send({
+      embeds: [embed],
+    });
 
     return message.author.send(
       `✅ Announcement sent to ${channel}.`
