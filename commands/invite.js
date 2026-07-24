@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 
-const CLIENT_ID = "YOUR_BOT_CLIENT_ID";
+const CLIENT_ID = "1529444189610315886";
 
 module.exports = {
   name: "invite",
