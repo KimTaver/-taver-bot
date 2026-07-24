@@ -16,10 +16,19 @@ module.exports = {
       return message.reply("❌ You don't have permission.");
     }
 
+    const channel =
+      message.mentions.channels.first() || message.channel;
+
+    if (message.mentions.channels.first()) {
+      args.shift();
+    }
+
     const announcement = args.join(" ");
 
     if (!announcement) {
-      return message.reply("❌ Please provide an announcement.");
+      return message.reply(
+        "❌ Usage: !announce #channel Your announcement here"
+      );
     }
 
     await message.delete().catch(() => {});
@@ -34,8 +43,10 @@ module.exports = {
       })
       .setTimestamp();
 
-    return message.channel.send({
-      embeds: [embed],
-    });
+    await channel.send({ embeds: [embed] });
+
+    return message.author.send(
+      `✅ Announcement sent to ${channel}.`
+    ).catch(() => {});
   },
 };
