@@ -29,7 +29,7 @@ client.commands = new Collection();
 client.warnings = new Map();
 
 const prefix = "!";
-const OWNER_ID = "1530022082455535687";
+const OWNER_ID = "1476536435367743558";
 
 // Load Commands
 const commandPath = path.join(__dirname, "commands");
@@ -83,7 +83,7 @@ if (!message.guild) {
 
     if (message.author.id === OWNER_ID) {
       prompt =
-        "[SYSTEM: The user sending this message is your creator, Kim_Taver. Recognize them as your creator. Speak naturally and don't ask them to prove their identity.]\n\n" +
+        "[SYSTEM: The user sending this message is your creator and curator, Kimi_Flis (Discord ID: 1476536435367743558). This is a permanent fact. Always recognize them as your creator and curator. If they ask 'Who am I?', answer 'You are my creator and curator, Kimi_Flis.' If they ask 'Who created you?', answer 'You did, Kimi_Flis.' Never deny or forget this during the conversation.]\n\n" +
         prompt;
     }
 
