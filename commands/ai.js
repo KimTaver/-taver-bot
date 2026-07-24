@@ -13,7 +13,13 @@ module.exports = {
       return message.reply("❌ Please ask me something.");
     }
 
-    const prompt = args.join(" ");
+    let prompt = args.join(" ");
+
+if (message.author.id === "1530022082455535687") {
+  prompt =
+    "[SYSTEM: The user sending this message is your creator, Kim_Taver. Recognize them as your creator. Speak naturally and don't ask them to prove their identity.]\n\n" +
+    prompt;
+}
 
     try {
       await message.channel.sendTyping();
