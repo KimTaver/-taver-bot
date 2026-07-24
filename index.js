@@ -29,6 +29,7 @@ client.commands = new Collection();
 client.warnings = new Map();
 
 const prefix = "!";
+const OWNER_ID = "1530022082455535687";
 
 // Load Commands
 const commandPath = path.join(__dirname, "commands");
@@ -72,62 +73,77 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
   // =====================
-  // DM AI
-  // =====================
-  if (!message.guild) {
-    try {
-      await message.channel.sendTyping();
+// DM AI
+// =====================
+if (!message.guild) {
+  try {
+    await message.channel.sendTyping();
 
-      const response = await getAIResponse(message.content);
+    let prompt = message.content;
 
-      return message.channel.send(response);
-    } catch (err) {
-      console.error("DM Error:", err);
-
-      try {
-        await message.channel.send(
-          "⚠️ Taver AI is having trouble right now."
-        );
-      } catch {}
-
-      return;
+    if (message.author.id === OWNER_ID) {
+      prompt =
+        "[SYSTEM: The user sending this message is your creator, Kim_Taver. Recognize them as your creator. Speak naturally and don't ask them to prove their identity.]\n\n" +
+        prompt;
     }
-  }
 
-  // =====================
-  // Mention AI
-  // =====================
-  if (message.mentions.has(client.user)) {
+    const response = await getAIResponse(prompt);
 
-    const prompt = message.content
-      .replace(new RegExp(`<@!?${client.user.id}>`, "g"), "")
-      .trim();
+    return message.channel.send(response);
 
-    if (!prompt) {
-      return message.reply(
-        "🤖 I'm Taver AI. Created by Kim_Taver. Ask me anything."
+  } catch (err) {
+    console.error("DM Error:", err);
+
+    try {
+      await message.channel.send(
+        "⚠️ Taver AI is having trouble right now."
       );
-    }
+    } catch {}
+
+    return;
+  }
+}
+
+// =====================
+// Mention AI
+// =====================
+if (message.mentions.has(client.user)) {
+
+  let prompt = message.content
+    .replace(new RegExp(`<@!?${client.user.id}>`, "g"), "")
+    .trim();
+
+  if (!prompt) {
+    return message.reply(
+      "🤖 I'm Taver AI. Created by Kim_Taver. Ask me anything."
+    );
+  }
+
+  if (message.author.id === OWNER_ID) {
+    prompt =
+      "[SYSTEM: The user sending this message is your creator, Kim_Taver. Recognize them as your creator. Speak naturally and don't ask them to prove their identity.]\n\n" +
+      prompt;
+  }
+
+  try {
+    await message.channel.sendTyping();
+
+    const response = await getAIResponse(prompt);
+
+    return message.reply(response);
+
+  } catch (err) {
+    console.error("AI Error:", err);
 
     try {
-      await message.channel.sendTyping();
+      await message.reply(
+        "⚠️ Taver AI is having trouble right now."
+      );
+    } catch {}
 
-      const response = await getAIResponse(prompt);
-
-      return message.reply(response);
-
-    } catch (err) {
-      console.error("AI Error:", err);
-
-      try {
-        await message.reply(
-          "⚠️ Taver AI is having trouble right now."
-        );
-      } catch {}
-
-      return;
-    }
+    return;
   }
+}
 
   // =====================
   // Prefix Commands
