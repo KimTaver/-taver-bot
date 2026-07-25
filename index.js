@@ -69,12 +69,17 @@ client.once("ready", () => {
   });
 });
 
-client.on("messageCreate", async (message) => {
+const client.on("messageCreate", async (message) => {
+
+  console.log(
+    `[MESSAGE] ${message.author.tag} | Bot: ${message.author.bot} | Guild: ${!!message.guild} | Content: ${message.content}`
+  );
+
   if (message.author.bot) return;
 
   // =====================
-// DM AI
-// =====================
+  // DM AI
+  // =====================
 if (!message.guild) {
   try {
     await message.channel.sendTyping();
