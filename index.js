@@ -10,6 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const getAIResponse = require("./utils/ai");
 const connectDB = require("./database");
+const { remember } = require("./utils/memory");
 
 const client = new Client({
   intents: [
@@ -77,6 +78,21 @@ client.on("messageCreate", async (message) => {
   );
 
   if (message.author.bot) return;
+
+// Automatic memory saving
+const content = message.content;
+
+// Remember user's name
+const nameMatch = content.match(/my name is (.+)/i);
+if (nameMatch) {
+  remember(message.author.id, "name", nameMatch[1].trim());
+}
+
+// Remember what the user likes
+const likesMatch = content.match(/i like (.+)/i);
+if (likesMatch) {
+  remember(message.author.id, "likes", likesMatch[1].trim());
+}
 
   // =====================
   // DM AI
