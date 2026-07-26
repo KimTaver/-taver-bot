@@ -1,4 +1,5 @@
 const Groq = require("groq-sdk");
+const { recall } = require("./memory");
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -7,6 +8,17 @@ const groq = new Groq({
 const CURATOR_ID = "1476536435367743558";
 
 async function getAIResponse(prompt, userId = "") {
+
+  let memoryContext = "";
+
+  if (userId) {
+    const name = recall(userId, "name");
+    const likes = recall(userId, "likes");
+
+    if (name) memoryContext += `User's name: ${name}\n`;
+    if (likes) memoryContext += `User likes: ${likes}\n`;
+  }
+
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     temperature: 0.9,
@@ -32,6 +44,10 @@ Never break character.
           userId === CURATOR_ID
             ? "The current user is your verified creator, Kim_Taver. Recognise them naturally and never ask them to prove their identity."
             : "The current user is not your creator."
+      },
+      {
+        role: "system",
+        content: memoryContext || "No memories stored."
       },
       {
         role: "user",
