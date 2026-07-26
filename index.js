@@ -9,6 +9,7 @@ const {
 const fs = require("fs");
 const path = require("path");
 const getAIResponse = require("./utils/ai");
+const connectDB = require("./database");
 
 const client = new Client({
   intents: [
@@ -193,6 +194,8 @@ try {
 // Prevent bot from crashing
 process.on("unhandledRejection", console.error);
 process.on("uncaughtException", console.error);
+
+connectDB();
 
 client.login(process.env.DISCORD_TOKEN)
   .then(() => console.log("✅ Discord login successful"))
