@@ -93,7 +93,7 @@ if (!message.guild) {
         prompt;
     }
 
-    const response = await getAIResponse(prompt);
+    const response = await getAIResponse(prompt, message.author.id);
 
     return message.channel.send(response);
 
@@ -134,7 +134,7 @@ if (message.mentions.has(client.user)) {
   try {
     await message.channel.sendTyping();
 
-    const response = await getAIResponse(prompt);
+    const response = await getAIResponse(prompt, message.author.id);
 
     return message.reply(response);
 
