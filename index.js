@@ -69,7 +69,7 @@ client.once("ready", () => {
   });
 });
 
-const client.on("messageCreate", async (message) => {
+client.on("messageCreate", async (message) => {
 
   console.log(
     `[MESSAGE] ${message.author.tag} | Bot: ${message.author.bot} | Guild: ${!!message.guild} | Content: ${message.content}`
