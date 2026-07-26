@@ -1,52 +1,32 @@
-const fs = require("fs");
-const path = require("path");
+const Memory = require("../models/Memory");
 
-const memoryFile = path.join(__dirname, "../memory.json");
+async function saveMemory(userId, username, text) {
+  let user = await Memory.findOne({ userId });
 
-function loadMemory() {
-  if (!fs.existsSync(memoryFile)) {
-    fs.writeFileSync(memoryFile, "{}");
+  if (!user) {
+    user = new Memory({
+      userId,
+      username,
+      memories: [],
+    });
   }
 
-  return JSON.parse(fs.readFileSync(memoryFile, "utf8"));
+  user.memories.push({
+    text,
+  });
+
+  await user.save();
 }
 
-function saveMemory(data) {
-  fs.writeFileSync(memoryFile, JSON.stringify(data, null, 2));
-}
+async function getMemories(userId) {
+  const user = await Memory.findOne({ userId });
 
-function remember(userId, key, value) {
-  const data = loadMemory();
+  if (!user) return [];
 
-  if (!data[userId]) {
-    data[userId] = {};
-  }
-
-  data[userId][key] = value;
-
-  saveMemory(data);
-}
-
-function recall(userId, key) {
-  const data = loadMemory();
-
-  if (!data[userId]) return null;
-
-  return data[userId][key];
-}
-
-function forget(userId, key) {
-  const data = loadMemory();
-
-  if (!data[userId]) return;
-
-  delete data[userId][key];
-
-  saveMemory(data);
+  return user.memories.map(m => m.text);
 }
 
 module.exports = {
-  remember,
-  recall,
-  forget,
+  saveMemory,
+  getMemories,
 };
